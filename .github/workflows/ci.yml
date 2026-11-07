@@ -7,9 +7,6 @@ on:
 jobs:
   syntax:
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: codex-strip-proxy-setup
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -31,9 +28,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, ubuntu-26.04]
-    defaults:
-      run:
-        working-directory: codex-strip-proxy-setup
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,9 +38,6 @@ jobs:
 
   checksums:
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: codex-strip-proxy-setup
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
