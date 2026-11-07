@@ -8,8 +8,8 @@ jobs:
   syntax:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Bash syntax
@@ -29,8 +29,8 @@ jobs:
       matrix:
         os: [ubuntu-24.04, ubuntu-26.04]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Unit tests
@@ -39,6 +39,6 @@ jobs:
   inventory:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Verify shipped file inventory
         run: bash ci/verify_files.sh --tracked
