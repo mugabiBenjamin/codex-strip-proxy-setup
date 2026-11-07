@@ -49,7 +49,7 @@ export PORT UPSTREAM COMMIT SHA256 REPO DIR UNIT TEMPLATE
 /usr/bin/python3 "$PACKAGE_ROOT/bin/proxy-config" --config "$CFG" --port "$PORT" --mode check
 
 bash "$HERE/prereqs.sh"
-bash "$PACKAGE_ROOT/ci/verify_checksums.sh"
+bash "$PACKAGE_ROOT/ci/verify_files.sh"
 
 mkdir -p "$STATE" "$(dirname -- "$DIR")" "$(dirname -- "$UNIT")"
 RUN="$(mktemp -d "$STATE/setup-XXXXXXXX")"
