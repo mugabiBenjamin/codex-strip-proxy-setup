@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+*.bak.strip-proxy.*
+setup-*/
+verification-*/
+.env
+dist/
+*.egg-info/
