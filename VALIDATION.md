@@ -17,7 +17,7 @@ Checked on 6 November 2026 on the machine whose installation informed the guide.
 | Sanitizer extraction | [`tests/test_sanitizer_check.py`](tests/test_sanitizer_check.py) covers a fixture, renamed function, invalid Python, and the real installed proxy source. The live source check passed on this machine. |
 | Checksums | `bash ci/generate_checksums.sh` wrote 24 entries; `bash ci/verify_checksums.sh` reported every entry `OK`. |
 | Config preview on the real installation | Passed without writing: selected provider `AgentRouter`; current and target URLs both `http://127.0.0.1:8899/v1`; `changed: false`. |
-| Read-only verifier on the real installation | Passed at 2026-11-06 15:03:32 EAT. Pinned commit/checksum, sanitizer, active and enabled service, process command, listener ownership, log path, disabled request dumping, and selected config all passed. |
+| Read-only verifier on the real installation | Passed at 2026-11-06 15:03:32 local time. Pinned commit/checksum, sanitizer, active and enabled service, process command, listener ownership, log path, disabled request dumping, and selected config all passed. |
 | Saved live-test checker from the guide | Executed against the earlier CLI records and passed: same session, two completed turns, successful tool, correct follow-up, unchanged fixtures. |
 | Companion links | Local links in [`README.md`](README.md) and this file resolve within the package (checked manually). |
 
