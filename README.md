@@ -1,6 +1,6 @@
 # codex-strip-proxy on Ubuntu: reproducible setup and verification
 
-Revised 6 November 2026 using a successful installation and desktop restart verification on Ubuntu 26.04.1 LTS. Times in the recorded evidence are Africa/Kampala (EAT, UTC+3).
+Revised 6 November 2026 using a successful installation and desktop restart verification on Ubuntu 26.04.1 LTS. Times in the recorded evidence are local to the tested machine.
 
 This package installs a pinned local workaround for the AgentRouter Responses API error:
 
@@ -387,7 +387,7 @@ small.txt   17 bytes
 
 The follow-up returned: “`large.txt` is the largest at 4,096 bytes.” The fixtures remained unchanged.
 
-Observed proxy log entries, EAT:
+Observed proxy log entries, local time:
 
 ```text
 2026-11-06 14:45:24 /v1/responses http=401 stripped=0 req=2B
