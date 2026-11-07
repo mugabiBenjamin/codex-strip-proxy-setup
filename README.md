@@ -71,6 +71,12 @@ Then pass `--port 9900` to both CLIs and replace 8899 in the commands below.
 
 ### Existing installation
 
+Update the clone first so its installer and unit template match `main`:
+
+```bash
+git pull --ff-only
+```
+
 If the installer stops because an existing service unit differs, it did not overwrite anything. To upgrade an existing install:
 
 ```bash
