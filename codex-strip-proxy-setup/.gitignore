@@ -7,3 +7,4 @@ verification-*/
 .env
 dist/
 *.egg-info/
+*repomix-output.xml
