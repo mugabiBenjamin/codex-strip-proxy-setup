@@ -26,12 +26,12 @@ Keep in mind:
 
 | Path | Purpose |
 | --- | --- |
-| [`manifest.toml`](manifest.toml) | Pinned commit, checksum, upstream, default port, and owned files; only [`src/manifest.py`](src/manifest.py) reads it. |
+| [`manifest.toml`](manifest.toml) | Pinned upstream commit and SHA-256, upstream URL, default port, and shipped-file inventory; only [`src/manifest.py`](src/manifest.py) reads it. |
 | [`installer/`](installer/) | `setup.sh` orchestration, `prereqs.sh`, `service_install.sh`, and `probe.sh`. |
 | [`templates/codex-strip-proxy.service.tmpl`](templates/codex-strip-proxy.service.tmpl) | The only unit definition; rendered by [`src/template.py`](src/template.py). |
 | [`bin/`](bin/) | `proxy-config` for preview/apply/restore and `verify-proxy` for read-only local checks. |
 | [`src/`](src/) | Manifest, path, config I/O, editor, template, service, and sanitizer modules. |
-| [`ci/`](ci/) / [`tests/`](tests/) | Checksum generator/verifier and unit tests; tests never touch the live config or service. |
+| [`ci/`](ci/) / [`tests/`](tests/) | [`ci/verify_files.sh`](ci/verify_files.sh) checks the shipped-file inventory; unit tests never touch the live config or service. |
 
 The installer phases and both CLIs run `set -euo pipefail` where applicable. Nothing writes to `manifest.toml`.
 
@@ -72,8 +72,8 @@ There is no need to mark scripts executable when invoking them with `bash`; the 
 
 The installer:
 
-1. Loads pinned values from `manifest.toml` through [`src/manifest.py`](src/manifest.py), previews the selected provider, runs the prerequisite and checksum checks, and creates an evidence directory under `~/.local/state/codex-strip-proxy/setup-*`.
-2. Downloads the proxy into `~/.local/share/codex-strip-proxy`, checks out exactly `f28af95966200a614c671b73aa3e1e581ac2141b`, and verifies `codex_strip_proxy.py` against SHA-256 `422f19081195d5586521e1abce5789b12a709ee60dbc93e19a774a4445965fc4`. This proves byte consistency, not trustworthiness.
+1. Loads pinned values from `manifest.toml` through [`src/manifest.py`](src/manifest.py), previews the selected provider, runs the prerequisite and shipped-file checks, and creates an evidence directory under `~/.local/state/codex-strip-proxy/setup-*`.
+2. Downloads the proxy into `~/.local/share/codex-strip-proxy`, checks out exactly `f28af95966200a614c671b73aa3e1e581ac2141b`, and verifies `codex_strip_proxy.py` against SHA-256 `422f19081195d5586521e1abce5789b12a709ee60dbc93e19a774a4445965fc4`. The upstream SHA-256 proves the cloned script matches the pinned revision, not trustworthiness.
 3. Prints the entire upstream script and waits for `y`. Read it first. Expected imports are `http.server`, `urllib.request`, `urllib.error`, `json`, `sys`, `os`, and `time`. The reviewed script runs no shell commands; `urllib` may honor proxy environment settings and follow redirects.
 4. Renders the unit, refuses to overwrite an unexpected checkout or service, and never kills a process to free the port. It installs and enables the user service, waits for an active service with a reachable socket, and runs the keyless direct-vs-proxy probe. The expected result is the same 401 from both.
 5. Runs the verifier, applies `bin/proxy-config --mode apply`, then runs the verifier again including the config check.
@@ -251,8 +251,6 @@ The proxy logs HTTP status after receiving upstream response headers, **before**
 
 Keep a redacted report: date/time zone, platform and versions, config path and provider (no key), commit/checksum, service status, backup name, session ID, command exits, answers, and fresh log lines.
 
-Save a redacted report with the date/time zone, platform and versions, config path and selected provider (no key), commit/checksum, service status, backup filename, test directory/session ID, command exits, final answers, and relevant fresh log lines.
-
 ## 6. Evidence and limitations
 
 The tested installation changed only the selected URL, kept model/reasoning/authentication settings, and used the template service. The sanitizer removed six sample state fields; both CLI turns exited 0, completed, shared a session, listed the fixtures correctly, and left them unchanged. The deliberate keyless probe logged 401; CLI and post-restart desktop replay produced fresh 200 entries with positive strip counts (for example 7, 5, and 79 removed fields). After a full quit/reopen, the config still pointed local, and the service stayed active/enabled with zero restarts. This demonstrates persistence on that machine, not every future payload, relay state, or Codex version.
@@ -338,11 +336,11 @@ systemctl --user disable --now codex-strip-proxy
 
 This retains source, unit, backups, and logs. Do not blindly copy an old whole-config backup over a current config; use it as a reference for a manual merge.
 
-## 9. Checksums, CI, and license
+## 9. CI, file inventory, and license
 
-`manifest.toml` lists every shipped file except `SHA256SUMS.txt`. [`ci/generate_checksums.sh`](ci/generate_checksums.sh) hashes exactly that list into [`SHA256SUMS.txt`](SHA256SUMS.txt); do not edit it by hand. [`ci/verify_checksums.sh`](ci/verify_checksums.sh) is read-only and runs before installer changes and in CI.
+`manifest.toml` lists every shipped file. [`ci/verify_files.sh`](ci/verify_files.sh) checks that each listed file exists and, inside a Git checkout, is tracked; CI forces the tracked check with `--tracked`. The installer runs the same check before making changes, while a downloaded archive without `.git` gets existence-only verification. There is deliberately no package-wide checksum file: the upstream proxy's pinned commit and SHA-256 are the integrity pin for downloaded code, while Git commit identity and review cover this package.
 
-The workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) checks Bash/Python syntax, runs unit tests on Ubuntu 24.04 and 26.04, and fails if checksums are stale. This proves internal consistency only, not that a fresh install works or the upstream relay is trustworthy.
+The workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) checks Bash/Python syntax, verifies the shipped-file inventory, and runs unit tests on Ubuntu 24.04 and 26.04. These checks prove internal consistency only, not that a fresh install works or the upstream relay is trustworthy.
 
 This package is MIT licensed; see [LICENSE](LICENSE). The pinned upstream is not vendored; the installer clones the recorded commit and verifies its SHA-256. Its GitHub metadata reports no license, so review its terms before redistributing.
 
