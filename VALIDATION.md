@@ -29,7 +29,7 @@ At the later read-only verifier check, the same service remained active/running 
 
 ## What the CI checksums job does and does not prove
 
-The checksums job in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) verifies that every path listed in `manifest.toml` still matches `SHA256SUMS.txt`, regenerates the file, and fails if the result differs from what is committed. It proves internal byte-for-byte consistency between the manifest's owned-file list and the checked-in package at that commit.
+The checksums job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) verifies that every path listed in `manifest.toml` still matches `SHA256SUMS.txt`, regenerates the file, and fails if the result differs from what is committed. It proves internal byte-for-byte consistency between the manifest's owned-file list and the checked-in package at that commit.
 
 It does not prove that the files are trustworthy, that the upstream repository is safe, that a clean installation succeeds, that the relay works, or that an authenticated Codex turn completes. Those require the live checks described in the README.
 
