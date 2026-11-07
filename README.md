@@ -69,6 +69,27 @@ STRIP_PROXY_PORT=9900 bash ./installer/setup.sh
 
 Then pass `--port 9900` to both CLIs and replace 8899 in the commands below.
 
+### Existing installation
+
+If the installer stops because an existing service unit differs, it did not overwrite anything. To upgrade an existing install:
+
+```bash
+systemctl --user disable --now codex-strip-proxy
+mv ~/.config/systemd/user/codex-strip-proxy.service \
+   ~/.config/systemd/user/codex-strip-proxy.service.old
+systemctl --user daemon-reload
+bash ./installer/setup.sh
+```
+
+If the upgrade fails, restore the old unit:
+
+```bash
+mv ~/.config/systemd/user/codex-strip-proxy.service.old \
+   ~/.config/systemd/user/codex-strip-proxy.service
+systemctl --user daemon-reload
+systemctl --user enable --now codex-strip-proxy
+```
+
 ## 4. Verify
 
 ### A. Service, source, config, and sanitizer
