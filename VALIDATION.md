@@ -1,6 +1,6 @@
 # Validation of this revised package
 
-Checked on 6 November 2026 on the machine whose installation informed the guide. This file distinguishes live installation evidence from checks of the newly written companion package.
+Revised 7 November 2026. Live installation evidence was recorded on 6 November 2026 on the machine whose installation informed the guide. This file distinguishes live installation evidence from checks of the root-level package layout.
 
 ## Passed checks
 
@@ -13,9 +13,11 @@ Checked on 6 November 2026 on the machine whose installation informed the guide.
 | Manifest validation | [`tests/test_manifest.py`](tests/test_manifest.py) covers valid loading, missing keys, wrong types, malformed commit, missing file, and the packaged manifest. |
 | Config I/O | [`tests/test_config_io.py`](tests/test_config_io.py) covers the happy path, symlink refusal, profile refusal, missing provider, and unsimple provider names. |
 | Config editor | [`tests/test_config_editor.py`](tests/test_config_editor.py) retains all 13 original cases and adds manifest-sourced `DIRECT`, multi-line `base_url` refusal, and UTC backup naming. |
-| Service template | [`tests/test_service_template.py`](tests/test_service_template.py) covers rendering, port range and metacharacter refusal, backtick and dollar refusal, missing placeholders, and `systemd-analyze --user verify` of the rendered unit. |
+| Service template | [`tests/test_service_template.py`](tests/test_service_template.py) covers rendering, hardening directives, port range and metacharacter refusal, backtick and dollar refusal, missing placeholders, and `systemd-analyze --user verify` of the rendered unit. |
 | Sanitizer extraction | [`tests/test_sanitizer_check.py`](tests/test_sanitizer_check.py) covers a fixture, renamed function, invalid Python, and the real installed proxy source. The live source check passed on this machine. |
-| Checksums | `bash ci/generate_checksums.sh` wrote 24 entries; `bash ci/verify_checksums.sh` reported every entry `OK`. |
+| Checksums | `bash ci/generate_checksums.sh` wrote 28 entries covering every shipped file except `SHA256SUMS.txt`; `bash ci/verify_checksums.sh` reported every entry `OK`. |
+| Repository layout | The package is at the repository root; all links, CI paths, and checksum paths are root-relative. The nested `codex-strip-proxy-setup/` directory no longer exists. |
+| License | [`LICENSE`](LICENSE) contains the MIT license for this package. The upstream proxy is cloned at install time and is not vendored here. |
 | Config preview on the real installation | Passed without writing: selected provider `AgentRouter`; current and target URLs both `http://127.0.0.1:8899/v1`; `changed: false`. |
 | Read-only verifier on the real installation | Passed at 2026-11-06 15:03:32 local time. Pinned commit/checksum, sanitizer, active and enabled service, process command, listener ownership, log path, disabled request dumping, and selected config all passed. |
 | Saved live-test checker from the guide | Executed against the earlier CLI records and passed: same session, two completed turns, successful tool, correct follow-up, unchanged fixtures. |
@@ -39,5 +41,6 @@ It does not prove that the files are trustworthy, that the upstream repository i
 - Ubuntu 24.04 compatibility is based on prerequisites, not a live test on that release; the GitHub Actions matrix is declared but has not been observed to run here.
 - No new authenticated model test was launched merely to validate the revised documentation; the existing successful CLI evidence and ongoing desktop traffic were used.
 - [`bin/verify-proxy`](bin/verify-proxy) does not send new API requests, restart the desktop app, or treat old logs as proof of a fresh completed turn.
+- The hardened service unit passes `systemd-analyze --user verify`, but the new hardening directives have not been exercised against a live running service in this revision. A live restart and completed Codex turn remain required before claiming the hardened unit is fully verified.
 - No guarantee is made for other relays, future payload shapes, profile/override setups, or WebSocket transport.
 - ShellCheck was not installed; Bash syntax validation was performed instead. These tools provide different levels of analysis.
