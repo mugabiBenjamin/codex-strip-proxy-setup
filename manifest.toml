@@ -17,6 +17,10 @@ version = "1.0.0"
 # exactly these paths, in this order, into SHA256SUMS.txt.
 owned_files = [
   ".gitignore",
+  "LICENSE",
+  "README.md",
+  "VALIDATION.md",
+  ".github/workflows/ci.yml",
   "manifest.toml",
   "src/__init__.py",
   "src/manifest.py",
