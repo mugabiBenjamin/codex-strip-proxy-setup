@@ -1,6 +1,6 @@
 # codex-strip-proxy on Ubuntu: reproducible setup and verification
 
-Revised 6 November 2026 using a successful installation and desktop restart verification on Ubuntu 26.04.1 LTS. Times in the recorded evidence are local to the tested machine.
+Revised 7 November 2026. Live installation evidence was recorded on 6 November 2026 using a successful installation and desktop restart verification on Ubuntu 26.04.1 LTS. Times in the recorded evidence are local to the tested machine.
 
 This package installs a pinned local workaround for the AgentRouter Responses API error:
 
