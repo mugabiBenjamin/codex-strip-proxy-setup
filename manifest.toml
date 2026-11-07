@@ -13,8 +13,8 @@ codex_home_env_var = "CODEX_HOME"
 
 [package]
 version = "1.0.0"
-# Every file that must ship with the package. ci/generate_checksums.sh hashes
-# exactly these paths, in this order, into SHA256SUMS.txt.
+# Every file that must ship with the package. ci/verify_files.sh checks that
+# these paths exist; CI also requires them to be tracked in Git.
 owned_files = [
   ".gitignore",
   "LICENSE",
@@ -42,6 +42,5 @@ owned_files = [
   "tests/test_config_editor.py",
   "tests/test_service_template.py",
   "tests/test_sanitizer_check.py",
-  "ci/generate_checksums.sh",
-  "ci/verify_checksums.sh",
+  "ci/verify_files.sh",
 ]
