@@ -1,0 +1,43 @@
+# Single source of truth for the codex-strip-proxy setup package.
+# src/manifest.py loads and validates this file; nothing else reads it directly.
+
+[proxy]
+commit = "f28af95966200a614c671b73aa3e1e581ac2141b"
+sha256 = "422f19081195d5586521e1abce5789b12a709ee60dbc93e19a774a4445965fc4"
+upstream = "https://agentrouter.org"
+repository = "https://github.com/AnnaofArendelle/codex-strip-proxy.git"
+
+[defaults]
+port = 8899
+codex_home_env_var = "CODEX_HOME"
+
+[package]
+version = "1.0.0"
+# Every file that must ship with the package. ci/generate_checksums.sh hashes
+# exactly these paths, in this order, into SHA256SUMS.txt.
+owned_files = [
+  ".gitignore",
+  "manifest.toml",
+  "src/__init__.py",
+  "src/manifest.py",
+  "src/env.py",
+  "src/config_io.py",
+  "src/config_editor.py",
+  "src/service.py",
+  "src/template.py",
+  "src/sanitizer_check.py",
+  "bin/proxy-config",
+  "bin/verify-proxy",
+  "installer/setup.sh",
+  "installer/prereqs.sh",
+  "installer/service_install.sh",
+  "installer/probe.sh",
+  "templates/codex-strip-proxy.service.tmpl",
+  "tests/test_manifest.py",
+  "tests/test_config_io.py",
+  "tests/test_config_editor.py",
+  "tests/test_service_template.py",
+  "tests/test_sanitizer_check.py",
+  "ci/generate_checksums.sh",
+  "ci/verify_checksums.sh",
+]
