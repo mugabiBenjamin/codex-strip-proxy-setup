@@ -25,6 +25,11 @@ class TemplateTests(unittest.TestCase):
         text = render(TEMPLATE, {'PORT': 8899, 'UPSTREAM': UPSTREAM})
         self.assertIn('ExecStart=/usr/bin/python3 -I "%h/.local/share/codex-strip-proxy/codex_strip_proxy.py" 8899 ' + UPSTREAM, text)
         self.assertIn('[Install]\nWantedBy=default.target', text)
+        for line in ('ProtectSystem=strict', 'ProtectHome=read-only', 'PrivateTmp=yes',
+                     'ReadWritePaths=%h/.local/state/codex-strip-proxy',
+                     'RestrictAddressFamilies=AF_INET AF_UNIX', 'CapabilityBoundingSet=',
+                     'RestrictRealtime=yes', 'LockPersonality=yes'):
+            self.assertIn(line, text)
         self.assertNotIn('{{', text)
 
     def test_port_with_shell_metacharacter_raises(self):
