@@ -484,6 +484,12 @@ This retains the source, unit, backups, and logs for recovery. No deletion or lo
 
 The workflow in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) checks Bash and Python syntax, runs the unit tests on Ubuntu 24.04 and 26.04, and fails if `SHA256SUMS.txt` is not committed up to date. These checks prove internal consistency of this package only; they do not prove that a fresh installation works or that the upstream relay is trustworthy.
 
+## 10. License
+
+This package is released under the MIT License; see [LICENSE](LICENSE).
+
+The pinned upstream `codex-strip-proxy` repository is not vendored here. The installer clones it at the recorded commit and verifies the recorded SHA-256. Its GitHub metadata currently reports no license, so review its terms before redistributing its code.
+
 ## References
 
 - [Pinned upstream source](https://github.com/AnnaofArendelle/codex-strip-proxy/tree/f28af95966200a614c671b73aa3e1e581ac2141b)
