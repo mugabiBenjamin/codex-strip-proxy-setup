@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: codex-strip-proxy-setup
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bash syntax
+        run: |
+          status=0
+          while IFS= read -r -d '' file; do
+            bash -n "$file" || status=1
+          done < <(find . -name '*.sh' -type f -print0)
+          exit "$status"
+      - name: Python syntax
+        run: find . -name '*.py' -type f -exec python3 -m py_compile {} +
+
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-26.04]
+    defaults:
+      run:
+        working-directory: codex-strip-proxy-setup
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python3 -m unittest discover tests/ -v
+
+  checksums:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: codex-strip-proxy-setup
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify committed checksums
+        run: bash ci/verify_checksums.sh
+      - name: Regenerate and compare
+        run: |
+          bash ci/generate_checksums.sh
+          git diff --exit-code -- SHA256SUMS.txt
