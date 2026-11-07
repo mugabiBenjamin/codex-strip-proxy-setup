@@ -480,7 +480,7 @@ This retains the source, unit, backups, and logs for recovery. No deletion or lo
 
 ## 9. Checksums and CI
 
-`manifest.toml` lists every owned file. [`ci/generate_checksums.sh`](ci/generate_checksums.sh) hashes exactly that list into [`SHA256SUMS.txt`](SHA256SUMS.txt); do not edit the checksum file by hand. [`ci/verify_checksums.sh`](ci/verify_checksums.sh) is read-only and is run by both the installer (before any changes) and CI.
+`manifest.toml` lists every shipped file except `SHA256SUMS.txt` itself. [`ci/generate_checksums.sh`](ci/generate_checksums.sh) hashes exactly that list into [`SHA256SUMS.txt`](SHA256SUMS.txt); do not edit the checksum file by hand. [`ci/verify_checksums.sh`](ci/verify_checksums.sh) is read-only and is run by both the installer (before any changes) and CI.
 
 The workflow in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) checks Bash and Python syntax, runs the unit tests on Ubuntu 24.04 and 26.04, and fails if `SHA256SUMS.txt` is not committed up to date. These checks prove internal consistency of this package only; they do not prove that a fresh installation works or that the upstream relay is trustworthy.
 
