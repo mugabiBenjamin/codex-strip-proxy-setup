@@ -27,9 +27,10 @@ class TemplateTests(unittest.TestCase):
         self.assertIn('[Install]\nWantedBy=default.target', text)
         for line in ('ProtectSystem=strict', 'ProtectHome=read-only', 'PrivateTmp=yes',
                      'ReadWritePaths=%h/.local/state/codex-strip-proxy',
-                     'RestrictAddressFamilies=AF_INET AF_UNIX', 'CapabilityBoundingSet=',
+                     'RestrictAddressFamilies=AF_INET AF_UNIX',
                      'RestrictRealtime=yes', 'LockPersonality=yes'):
             self.assertIn(line, text)
+        self.assertNotIn('CapabilityBoundingSet=', text)
         self.assertNotIn('{{', text)
 
     def test_port_with_shell_metacharacter_raises(self):

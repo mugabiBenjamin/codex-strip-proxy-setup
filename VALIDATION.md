@@ -14,6 +14,7 @@ Revised 7 November 2026. Live installation evidence was recorded on 6 November 2
 | Config I/O | [`tests/test_config_io.py`](tests/test_config_io.py) covers the happy path, symlink refusal, profile refusal, missing provider, and unsimple provider names. |
 | Config editor | [`tests/test_config_editor.py`](tests/test_config_editor.py) retains all 13 original cases and adds manifest-sourced `DIRECT`, multi-line `base_url` refusal, and UTC backup naming. |
 | Service template | [`tests/test_service_template.py`](tests/test_service_template.py) covers rendering, hardening directives, port range and metacharacter refusal, backtick and dollar refusal, missing placeholders, and `systemd-analyze --user verify` of the rendered unit. |
+| Live hardened service | The current rendered unit was installed and started on Ubuntu 26.04.1. The service is active/enabled, listens on `127.0.0.1:8899`, and passes [`bin/verify-proxy`](bin/verify-proxy). `CapabilityBoundingSet=` was removed because the user manager rejected it with status 218/CAPABILITIES; the remaining hardening directives are active. |
 | Sanitizer extraction | [`tests/test_sanitizer_check.py`](tests/test_sanitizer_check.py) covers a fixture, renamed function, invalid Python, and the real installed proxy source. The live source check passed on this machine. |
 | Shipped-file inventory | `bash ci/verify_files.sh --tracked` confirmed that every path listed in `manifest.toml` exists and is tracked in Git. The installer runs the same check; a package without `.git` gets existence-only verification. |
 | Repository layout | The package is at the repository root; all links and CI paths are root-relative. The nested `codex-strip-proxy-setup/` directory no longer exists. |
@@ -41,6 +42,6 @@ It does not prove that the files are trustworthy, that the upstream repository i
 - Ubuntu 24.04 compatibility is based on prerequisites, not a live test on that release; the GitHub Actions matrix is declared but has not been observed to run here.
 - No new authenticated model test was launched merely to validate the revised documentation; the existing successful CLI evidence and ongoing desktop traffic were used.
 - [`bin/verify-proxy`](bin/verify-proxy) does not send new API requests, restart the desktop app, or treat old logs as proof of a fresh completed turn.
-- The hardened service unit passes `systemd-analyze --user verify`, but the new hardening directives have not been exercised against a live running service in this revision. A live restart and completed Codex turn remain required before claiming the hardened unit is fully verified.
+- The hardened service unit was exercised live: it is active/enabled, listens on `127.0.0.1:8899`, and passes the local verifier. A full desktop restart and completed authenticated Codex turn were not performed in this validation; `bin/verify-proxy` reports both as false.
 - No guarantee is made for other relays, future payload shapes, profile/override setups, or WebSocket transport.
 - ShellCheck was not installed; Bash syntax validation was performed instead. These tools provide different levels of analysis.
