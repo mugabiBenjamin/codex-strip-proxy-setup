@@ -13,7 +13,7 @@ Use the same resource that created the item to access it.
 
 | Path | Purpose |
 | --- | --- |
-| [`manifest.toml`](manifest.toml) | Single source of truth: pinned upstream commit and SHA-256, upstream URL, default port, and shipped-file inventory. Only [`src/manifest.py`](src/manifest.py) reads it. |
+| [`manifest.toml`](manifest.toml) | Single source of truth: pinned commit, checksum, upstream, default port, and owned files. Only [`src/manifest.py`](src/manifest.py) reads it. |
 | [`installer/setup.sh`](installer/setup.sh) | Entry point. Orchestrates the phases below; contains no install logic of its own. |
 | [`installer/prereqs.sh`](installer/prereqs.sh) | Read-only tool, Python, `tomllib`, and user-systemd checks. |
 | [`installer/service_install.sh`](installer/service_install.sh) | Validates or clones the pinned checkout, verifies its SHA-256, renders and installs the user unit. |
@@ -22,7 +22,7 @@ Use the same resource that created the item to access it.
 | [`bin/proxy-config`](bin/proxy-config) | CLI for preview, apply, and restore of the selected provider URL. |
 | [`bin/verify-proxy`](bin/verify-proxy) | Read-only local verifier. Sends no API requests. |
 | [`src/`](src/) | Manifest, path, config I/O, editor, template, service, and sanitizer modules. |
-| [`ci/verify_files.sh`](ci/verify_files.sh) | Checks that every shipped file exists and, inside a Git checkout, is tracked. |
+| [`ci/generate_checksums.sh`](ci/generate_checksums.sh) / [`ci/verify_checksums.sh`](ci/verify_checksums.sh) | Generator and fail-fast verifier for [`SHA256SUMS.txt`](SHA256SUMS.txt). |
 | [`tests/`](tests/) | Unit tests for every module. Never touches the live config or service. |
 
 The three installer phases and the two CLIs each run `set -euo pipefail` where applicable. Nothing here writes to `manifest.toml`.
@@ -116,7 +116,7 @@ The installer:
 
 1. Loads pinned values through `src.manifest` from [`manifest.toml`](manifest.toml).
 2. Previews the selected provider with `bin/proxy-config --mode check` before changing anything.
-3. Runs [`installer/prereqs.sh`](installer/prereqs.sh) and [`ci/verify_files.sh`](ci/verify_files.sh).
+3. Runs [`installer/prereqs.sh`](installer/prereqs.sh) and [`ci/verify_checksums.sh`](ci/verify_checksums.sh).
 4. Creates a unique evidence directory under `~/.local/state/codex-strip-proxy/setup-*`.
 5. Runs [`installer/service_install.sh`](installer/service_install.sh), which downloads the proxy into `~/.local/share/codex-strip-proxy`, checks out exactly:
 
@@ -136,7 +136,7 @@ The installer:
 10. Runs [`installer/probe.sh`](installer/probe.sh): unauthenticated direct and proxied POST requests must agree. The observed expected result is the same 401 response from each.
 11. Runs the verifier, applies `bin/proxy-config --mode apply`, then runs the verifier again including the config check.
 
-The upstream checksum establishes that the bytes match the reviewed revision; it is not an independent endorsement of the repository's trustworthiness.
+The checksum establishes that the bytes match the reviewed revision; it is not an independent endorsement of the repository's trustworthiness.
 
 If port 8899 is already occupied, inspect it first:
 
@@ -503,11 +503,11 @@ systemctl --user disable --now codex-strip-proxy
 
 This retains the source, unit, backups, and logs for recovery. No deletion or log truncation is required. If an agent performs rollback, it should obtain approval for interrupting active requests or deleting anything when the user has required that approval. Do not blindly copy an old whole-config backup over a current config: that can undo unrelated later changes. Use the backup as a reference if a manual merge is needed.
 
-## 9. CI and file inventory
+## 9. Checksums and CI
 
-`manifest.toml` lists every shipped file. [`ci/verify_files.sh`](ci/verify_files.sh) checks that each listed file exists and, inside a Git checkout, is tracked; CI forces the tracked check with `--tracked`. The installer runs the same check before making changes, while a downloaded archive without `.git` gets existence-only verification. There is deliberately no package-wide checksum file: the upstream proxy's pinned commit and SHA-256 are the integrity pin for downloaded code, while Git commit identity and review cover this package.
+`manifest.toml` lists every shipped file except `SHA256SUMS.txt` itself. [`ci/generate_checksums.sh`](ci/generate_checksums.sh) hashes exactly that list into [`SHA256SUMS.txt`](SHA256SUMS.txt); do not edit the checksum file by hand. [`ci/verify_checksums.sh`](ci/verify_checksums.sh) is read-only and is run by both the installer (before any changes) and CI.
 
-The workflow in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) checks Bash and Python syntax, verifies the shipped-file inventory, and runs the unit tests on Ubuntu 24.04 and 26.04. These checks prove internal consistency of this package only; they do not prove that a fresh installation works or that the upstream relay is trustworthy.
+The workflow in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) checks Bash and Python syntax, runs the unit tests on Ubuntu 24.04 and 26.04, and fails if `SHA256SUMS.txt` is not committed up to date. These checks prove internal consistency of this package only; they do not prove that a fresh installation works or that the upstream relay is trustworthy.
 
 ## 10. License
 
