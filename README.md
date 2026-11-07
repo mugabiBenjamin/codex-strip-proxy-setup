@@ -170,6 +170,14 @@ Restart=on-failure
 RestartSec=2
 NoNewPrivileges=yes
 UMask=0077
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+ReadWritePaths=%h/.local/state/codex-strip-proxy
+RestrictAddressFamilies=AF_INET AF_UNIX
+CapabilityBoundingSet=
+RestrictRealtime=yes
+LockPersonality=yes
 
 [Install]
 WantedBy=default.target
@@ -179,7 +187,9 @@ The rendered values are the chosen port and `https://agentrouter.org`. The upstr
 
 `-I` isolates Python import behavior; it does not clear ordinary process environment variables. `UnsetEnvironment=DUMP_DIR` explicitly prevents this proxy's optional request-body dumps. `UMask=0077` makes newly created logs private to the user; it does not retroactively change permissions on old files.
 
-The existing verified service used the same settings with an unquoted script path. The installer accepts this equivalent form. Do not start another foreground proxy on the same port while the service is running.
+The hardening directives make the system directories and home directory read-only, allow writes only to the proxy's state directory, restrict address families to IPv4/Unix sockets, and drop ambient capabilities. `ProtectHome=read-only` combined with `ReadWritePaths=%h/.local/state/codex-strip-proxy` is deliberate: the rendered service needs to read the script under `~/.local/share` and write its log under `~/.local/state`. If you change either path, update `ReadWritePaths` and retest the service.
+
+The earlier verified service used the same core settings with an unquoted script path and without these hardening directives. The installer accepts that equivalent unquoted form. Do not start another foreground proxy on the same port while the service is running.
 
 ### Config edits and reruns
 
@@ -457,6 +467,23 @@ tail -n 20 "$HOME/.local/state/codex-strip-proxy/proxy.log"
 Keep the proxy pinned. Before any future revision change, inspect the diff and retest replay. `Restart=on-failure` helps after a crash; it does not detect every stalled request or guarantee uptime.
 
 Enabled user services normally start with the user's manager at login and may stop after logout. Pre-login operation was not needed or tested here. `loginctl enable-linger` is an optional separate administrative choice, not part of the default installation. No firewall opening is required.
+
+### Log rotation
+
+The proxy log is unbounded. Add a reviewed rotation policy rather than deleting verification evidence by hand. For a user-level `logrotate` run, an example configuration is:
+
+```text
+$HOME/.local/state/codex-strip-proxy/proxy.log {
+    weekly
+    rotate 8
+    compress
+    missingok
+    notifempty
+    copytruncate
+}
+```
+
+`copytruncate` avoids restarting the proxy and interrupting active requests. Review the retention period, ownership, and whether your rotation runner executes as the same desktop user. Do not silently truncate the active log during an investigation.
 
 If the service needs a restart, first let active requests finish. A restart can interrupt them:
 
