@@ -1,0 +1,14 @@
+[Unit]
+Description=codex-strip-proxy (strips Azure resource-bound state for AgentRouter)
+
+[Service]
+Environment=LOG=%h/.local/state/codex-strip-proxy/proxy.log
+UnsetEnvironment=DUMP_DIR
+ExecStart=/usr/bin/python3 -I "%h/.local/share/codex-strip-proxy/codex_strip_proxy.py" {{PORT}} {{UPSTREAM}}
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+UMask=0077
+
+[Install]
+WantedBy=default.target
