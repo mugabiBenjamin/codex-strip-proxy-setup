@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""Read-only local checks. Does not send API requests or prove a fresh Codex turn."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+from datetime import datetime, timezone
+
+PACKAGE_ROOT = Path(__file__).resolve().parent.parent
+if str(PACKAGE_ROOT) not in sys.path:
+    sys.path.insert(0, str(PACKAGE_ROOT))
+
+from src import service
+from src.config_io import read_config
+from src.env import config_path
+from src.manifest import COMMIT, DEFAULT_PORT, SHA256, UPSTREAM
+from src.sanitizer_check import extract_and_run
+
+
+def run(*args):
+    return subprocess.check_output(args, text=True).strip()
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--config', type=Path, default=config_path())
+    parser.add_argument('--port', type=int, default=DEFAULT_PORT)
+    parser.add_argument('--service-only', action='store_true',
+                        help='Skip the Codex config check before it has been edited.')
+    args = parser.parse_args()
+    repo = Path.home() / '.local/share/codex-strip-proxy'
+    source = repo / 'codex_strip_proxy.py'
+    state = Path.home() / '.local/state/codex-strip-proxy'
+    require(run('git', '-C', str(repo), 'rev-parse', 'HEAD') == COMMIT, 'Unexpected proxy commit.')
+    require(not run('git', '-C', str(repo), 'status', '--porcelain'), 'Proxy checkout contains changes.')
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    require(digest == SHA256, 'Proxy source checksum differs from the audited version.')
+
+    extract_and_run(source)
+
+    properties = ['ActiveState', 'SubState', 'UnitFileState', 'MainPID', 'NRestarts',
+                  'NoNewPrivileges', 'UMask', 'DropInPaths']
+    service_state = service.query(properties)
+    for key, expected_value in [('ActiveState', 'active'), ('SubState', 'running'),
+                                ('UnitFileState', 'enabled'), ('NoNewPrivileges', 'yes'),
+                                ('UMask', '0077')]:
+        service.assert_property(service_state, key, expected_value)
+    require(not service_state['DropInPaths'], 'Review service drop-ins before verification.')
+    pid = service_state['MainPID']
+    proc = Path('/proc') / pid
+    command = proc.joinpath('cmdline').read_bytes().split(b'\0')
+    expected_command = ['/usr/bin/python3', '-I', str(source), str(args.port), UPSTREAM]
+    require(command == [s.encode() for s in expected_command] + [b''], 'Running process does not match the pinned service command.')
+    environment = proc.joinpath('environ').read_bytes().split(b'\0')
+    require(not any(s.startswith(b'DUMP_DIR=') for s in environment), 'DUMP_DIR is present in the running service.')
+    require(('LOG=' + str(state / 'proxy.log')).encode() in environment, 'Unexpected running log path.')
+    listeners = run('ss', '-H', '-ltnp', f'sport = :{args.port}').splitlines()
+    require(bool(listeners), 'No listener found.')
+    for line in listeners:
+        require(line.split()[3] == f'127.0.0.1:{args.port}' and f'pid={pid},' in line,
+                'Port has an unexpected address or owner.')
+
+    result = {'checked_at_utc': datetime.now(timezone.utc).isoformat(),
+              'result': 'PASS: local checks only', 'commit': COMMIT, 'sha256': digest,
+              'sanitizer_checks': 'passed', 'service': service_state,
+              'listener': f'127.0.0.1:{args.port}',
+              'request_dumping_disabled': True,
+              'fresh_authenticated_turn_verified': False,
+              'desktop_restart_verified_by_this_script': False}
+    if not args.service_only:
+        _, _, provider, settings = read_config(args.config)
+        require(settings.get('base_url') == f'http://127.0.0.1:{args.port}/v1',
+                'Selected provider is not pointing at this proxy.')
+        require(settings.get('wire_api', 'responses') == 'responses', 'Provider does not use Responses.')
+        require(not settings.get('supports_websockets', False),
+                'Provider enables unsupported WebSocket transport.')
+        result.update(config=str(args.config), provider=provider, base_url=settings['base_url'])
+    log = state / 'proxy.log'
+    result['recent_log_entries'] = log.read_text().splitlines()[-10:] if log.exists() else []
+    print(json.dumps(result, indent=2))
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, KeyError, StopIteration, subprocess.CalledProcessError) as error:
+        print('STOP: ' + str(error), file=sys.stderr)
+        sys.exit(1)
