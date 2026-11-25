@@ -161,6 +161,8 @@ wire_api = "responses"
 [model_providers.AgentRouter.models]
 "gpt-5.6-sol" = { name = "GPT-5.6 Sol" }
 "gpt-6.1-sol" = { name = "GPT-6.1 Sol" }
+"gpt-6.2-astra" = { name = "GPT-6.2 Astra" }
+"gpt-6.2-sol" = { name = "GPT-6.2 Sol" }
 ```
 
 Here is what the important settings mean:
